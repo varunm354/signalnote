@@ -116,3 +116,18 @@ signalnote/
     src/
       App.jsx          # main React UI
       App.css          # frontend styling
+  assets/
+    signalnote-hero.png
+    signalnote-add-note.png
+    signalnote-grounded-answer.png
+
+## Screenshots
+
+### Landing / product view
+![SignalNote landing view](assets/signalnote-hero.png)
+
+### Note ingestion flow
+![SignalNote add note flow](assets/signalnote-add-note.png)
+
+### Grounded answer with retrieved chunks
+![SignalNote grounded answer](assets/signalnote-grounded-answer.png)
