@@ -121,6 +121,7 @@ signalnote/
     signalnote-add-note.png
     signalnote-grounded-answer.png
 
+```
 ## Screenshots
 
 ### Landing / product view
