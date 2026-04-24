@@ -1,19 +1,20 @@
 # SignalNote
 
 **SignalNote** is a full-stack Retrieval-Augmented Generation (RAG) application for grounded Q&A over personal notes.  
-It ingests freeform reflections and notes, chunks and embeds them into a vector-aware PostgreSQL store, retrieves semantically relevant context with pgvector, and generates evidence-backed answers through a polished React frontend.
+It allows users to store notes, embed them into a vector database, retrieve semantically relevant context using pgvector, and generate context-aware answers through a React frontend.
+
+---
 
 ## Why this project
 
-Most “AI apps” stop at a prompt box and an LLM call. SignalNote was built to go deeper into the actual system design behind modern AI products:
+Most “AI apps” stop at a prompt box and a direct LLM call. SignalNote was built to go deeper into the system design behind modern AI products:
 
-- **semantic retrieval** over user-owned data
-- **chunking + embeddings** for meaning-based search
-- **grounded answer generation** instead of freeform model output
-- **source transparency** through retrieved supporting chunks
-- **full-stack integration** across frontend, backend, vector storage, and model APIs
+- semantic retrieval over user-owned data
+- embeddings for meaning-based search
+- grounded answer generation using retrieved context
+- full-stack integration across frontend, backend, vector storage, and model APIs
 
-The goal was to build something closer to a real AI product backend than a thin GPT wrapper.
+The goal was to build a system where the LLM is **not the product**, but one component in a larger retrieval pipeline.
 
 ---
 
@@ -21,83 +22,78 @@ The goal was to build something closer to a real AI product backend than a thin 
 
 SignalNote allows a user to:
 
-- store notes and reflections through a web UI
-- automatically chunk note content into retrieval-friendly units
-- generate embeddings for each chunk
-- store chunk vectors in PostgreSQL with **pgvector**
+- store notes through a web UI
+- generate embeddings for note content
+- store vectors in PostgreSQL using **pgvector**
 - ask natural-language questions over stored notes
-- retrieve the strongest matching chunks using vector similarity search
-- generate answers **only from retrieved context**
-- inspect the supporting source chunks used to answer
+- retrieve relevant content using vector similarity search
+- generate answers grounded in retrieved context
 
 ---
 
 ## Demo workflow
 
 1. User writes a note in the frontend  
-2. Backend chunks the note into smaller text segments  
-3. Each chunk is embedded and stored in PostgreSQL  
-4. User asks a question in natural language  
-5. Query is embedded into the same vector space  
-6. pgvector retrieves the most semantically relevant chunks  
-7. Retrieved chunks are filtered and deduplicated  
-8. LLM generates a grounded answer using only retrieved context  
-9. Frontend displays both the answer and the supporting evidence
+2. Backend generates an embedding for the note  
+3. Note + embedding are stored in PostgreSQL  
+4. User asks a question  
+5. Question is embedded into the same vector space  
+6. pgvector retrieves the most similar stored notes  
+7. Retrieved context is sent to the LLM  
+8. LLM generates a grounded answer  
+9. Frontend displays the answer  
 
 ---
 
 ## System architecture
 
 ### Frontend
-- **React**
-- **Vite**
-- Custom CSS
+- React  
+- Vite  
 
 ### Backend
-- **FastAPI**
-- Python
+- FastAPI (Python)
 
 ### Storage / Retrieval
-- **PostgreSQL**
-- **pgvector**
+- PostgreSQL  
+- pgvector  
 
 ### AI layer
-- OpenAI embeddings API
-- LLM-based grounded answer generation
+- OpenAI Embeddings API  
+- OpenAI Chat/Completions API  
 
 ---
 
 ## Core engineering ideas implemented
 
 ### 1. Semantic retrieval instead of keyword matching
-Queries are embedded into vector space and compared against stored note chunks using pgvector similarity search. This allows the system to retrieve relevant information by **meaning**, not just exact phrasing.
+User queries are embedded and compared against stored vectors using pgvector similarity search. This allows retrieval based on meaning rather than exact wording.
 
-### 2. Chunking for retrieval quality
-Long note content is split into smaller chunks before embedding. This improves retrieval precision by allowing the system to match specific sub-parts of a note rather than forcing one embedding to represent an entire document.
+### 2. Retrieval-Augmented Generation (RAG)
+Instead of directly querying an LLM, the system first retrieves relevant data and then provides that context to the model to generate grounded responses.
 
-### 3. Grounded generation
-The language model does not answer from general memory alone. Instead, it is given retrieved context and instructed to answer only from that evidence, improving trustworthiness and reducing hallucinated responses.
+### 3. Separation of retrieval and generation
+The system separates:
+- retrieval (pgvector)
+- generation (LLM)
 
-### 4. Retrieval filtering and deduplication
-Retrieved chunks are filtered using a relevance threshold and deduplicated before generation. This improves answer quality by reducing noisy or repetitive context.
+This makes the pipeline more controllable and extensible.
 
-### 5. End-to-end full-stack workflow
-SignalNote is not just an isolated backend script. It includes:
-- note ingestion from the frontend
+### 4. Full-stack AI system design
+SignalNote integrates:
+- frontend note ingestion
 - backend orchestration
 - vector storage
-- retrieval
-- answer generation
-- source chunk display in the UI
+- semantic retrieval
+- LLM-based answer generation
 
 ---
 
 ## Example queries
 
-- `What does pgvector do?`
-- `How does semantic search work in this project?`
-- `Explain embeddings in simple terms.`
-- `What themes have I been reflecting on?`
+- What does pgvector do?  
+- How does semantic search work in this project?  
+- Explain embeddings in simple terms  
 
 ---
 
@@ -107,15 +103,14 @@ SignalNote is not just an isolated backend script. It includes:
 signalnote/
   backend/
     app/
-      main.py          # FastAPI routes and orchestration
-      database.py      # database connection/session setup
-      embeddings.py    # embedding generation
-      models.py        # data models
-      search.py        # retrieval helpers
+      main.py
+      database.py
+      embeddings.py
+      models.py
   frontend/
     src/
-      App.jsx          # main React UI
-      App.css          # frontend styling
+      App.jsx
+      App.css
   assets/
     signalnote-hero.png
     signalnote-add-note.png
