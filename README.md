@@ -108,5 +108,23 @@ When using the app:
 
 ---
 
+## 📸 Screenshots
 
+### Product Overview
+A high-level view of the application, including note capture, query input, and system workflow.
 
+![Product Overview](assets/product-overview.png)
+
+---
+
+### Grounded Answer with Retrieved Sources
+The system generates answers grounded in your notes and displays supporting context with similarity scores.
+
+![Grounded Answer](assets/grounded-answer.png)
+
+---
+
+### Interactive Source Grounding
+Hovering over a retrieved source dynamically shows how it influences the generated answer.
+
+![Interactive Grounding](assets/interactive-grounding.png)
