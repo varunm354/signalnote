@@ -11,7 +11,9 @@ It allows users to store notes, retrieve semantically relevant context using vec
 
 ## 🚀 What makes this different
 
-Most AI apps are just a prompt box + LLM.
+Most AI apps stop at a prompt box and a direct LLM call.
+
+SignalNote is designed as a full retrieval-first system, where the model is only one component in a larger pipeline.
 
 SignalNote is built as a **complete AI system**, where:
 - retrieval comes before generation
@@ -22,7 +24,7 @@ Key product features:
 - 🧠 Semantic search over personal notes (pgvector)
 - 🔗 Grounded answers with visible source chunks
 - 📊 Similarity scoring for retrieved context
-- ⚡ Real-time “thinking” / loading states
+- ⚡ Real-time “thinking” states simulating retrieval + generation pipeline stages
 - 🎯 Interactive grounding (hover → see which source influences the answer)
 
 ---
@@ -35,8 +37,8 @@ Key product features:
 4. User asks a question  
 5. Query is embedded and compared against stored vectors  
 6. Top matches are retrieved based on similarity  
-7. Retrieved context is passed to the LLM  
-8. LLM generates a grounded answer  
+7. Top retrieved chunks are aggregated and passed as context to the LLM  
+8. The LLM generates a response grounded strictly in retrieved content  
 9. UI displays:
    - the answer  
    - supporting sources  
@@ -58,22 +60,31 @@ Key product features:
 
 ### Frontend
 - React (Vite)
+- JavaScript (ES6+)
+- State management with React hooks
+- Asynchronous API integration
 
 ### Backend
 - FastAPI (Python)
+- SQLAlchemy ORM
+- REST API design
 
-### Database
+### Database & Retrieval
 - PostgreSQL
 - pgvector (vector similarity search)
+- Embedding storage and retrieval
 
-### AI Layer
+### AI / RAG Pipeline
 - OpenAI Embeddings API
 - OpenAI Chat/Completions API
+- Text chunking and multi-chunk retrieval
+- Similarity-based ranking and context selection
 
 ### Deployment
 - Vercel (frontend)
 - Render (backend)
 
+> Designed and implemented an end-to-end RAG pipeline with embedding generation, vector similarity search, multi-chunk retrieval, and grounded answer synthesis.
 ---
 
 ## ⚙️ Core Engineering Concepts
@@ -94,6 +105,13 @@ The UI makes the system transparent:
 - links answers to specific notes through interaction
 
 ---
+
+## 🧠 Key Engineering Decisions
+
+- Implemented multi-chunk retrieval instead of single-match lookup to improve answer quality and reduce context loss
+- Identified and addressed duplicate retrieval issues caused by embedding similarity across overlapping notes
+- Designed frontend interactions (hover-based source highlighting) to improve user trust and explainability of AI outputs
+- Structured the system to separate retrieval (pgvector) from generation (LLM) for better control and extensibility
 
 ## 🖥️ Demo Experience
 
