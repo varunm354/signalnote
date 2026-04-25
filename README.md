@@ -1,129 +1,112 @@
 # SignalNote
 
-**SignalNote** is a full-stack Retrieval-Augmented Generation (RAG) application for grounded Q&A over personal notes.  
-It allows users to store notes, embed them into a vector database, retrieve semantically relevant context using pgvector, and generate context-aware answers through a React frontend.
+**SignalNote** is a full-stack AI notes application that turns personal notes into **grounded, interactive insights** using Retrieval-Augmented Generation (RAG).
+
+It allows users to store notes, retrieve semantically relevant context using vector search, and generate answers that are **explicitly tied to their own data**.
+
+👉 **Live Demo:** https://signalnote-euqfuc8ls-varunm354s-projects.vercel.app  
+⚠️ Shared demo environment — notes may persist across sessions
 
 ---
 
-## Why this project
+## 🚀 What makes this different
 
-Most “AI apps” stop at a prompt box and a direct LLM call. SignalNote was built to go deeper into the system design behind modern AI products:
+Most AI apps are just a prompt box + LLM.
 
-- semantic retrieval over user-owned data
-- embeddings for meaning-based search
-- grounded answer generation using retrieved context
-- full-stack integration across frontend, backend, vector storage, and model APIs
+SignalNote is built as a **complete AI system**, where:
+- retrieval comes before generation
+- answers are grounded in user data
+- users can see *why* an answer was generated
 
-The goal was to build a system where the LLM is **not the product**, but one component in a larger retrieval pipeline.
-
----
-
-## What it does
-
-SignalNote allows a user to:
-
-- store notes through a web UI
-- generate embeddings for note content
-- store vectors in PostgreSQL using **pgvector**
-- ask natural-language questions over stored notes
-- retrieve relevant content using vector similarity search
-- generate answers grounded in retrieved context
+Key product features:
+- 🧠 Semantic search over personal notes (pgvector)
+- 🔗 Grounded answers with visible source chunks
+- 📊 Similarity scoring for retrieved context
+- ⚡ Real-time “thinking” / loading states
+- 🎯 Interactive grounding (hover → see which source influences the answer)
 
 ---
 
-## Demo workflow
+## 🧪 How it works
 
-1. User writes a note in the frontend  
-2. Backend generates an embedding for the note  
-3. Note + embedding are stored in PostgreSQL  
+1. User writes a note  
+2. Backend generates embeddings  
+3. Notes + vectors are stored in PostgreSQL (pgvector)  
 4. User asks a question  
-5. Question is embedded into the same vector space  
-6. pgvector retrieves the most similar stored notes  
-7. Retrieved context is sent to the LLM  
+5. Query is embedded and compared against stored vectors  
+6. Top matches are retrieved based on similarity  
+7. Retrieved context is passed to the LLM  
 8. LLM generates a grounded answer  
-9. Frontend displays the answer  
+9. UI displays:
+   - the answer  
+   - supporting sources  
+   - similarity scores  
+   - interactive grounding cues  
 
 ---
 
-## System architecture
+## 🧠 Example questions
+
+- What patterns are showing up in my notes?  
+- What should I focus on next?  
+- What themes keep repeating in my thinking?  
+- What decisions have I been leaning toward?  
+
+---
+
+## 🏗️ Tech Stack
 
 ### Frontend
-- React  
-- Vite  
+- React (Vite)
 
 ### Backend
 - FastAPI (Python)
 
-### Storage / Retrieval
-- PostgreSQL  
-- pgvector  
+### Database
+- PostgreSQL
+- pgvector (vector similarity search)
 
-### AI layer
-- OpenAI Embeddings API  
-- OpenAI Chat/Completions API  
+### AI Layer
+- OpenAI Embeddings API
+- OpenAI Chat/Completions API
+
+### Deployment
+- Vercel (frontend)
+- Render (backend)
 
 ---
 
-## Core engineering ideas implemented
+## ⚙️ Core Engineering Concepts
 
-### 1. Semantic retrieval instead of keyword matching
-User queries are embedded and compared against stored vectors using pgvector similarity search. This allows retrieval based on meaning rather than exact wording.
+### 1. Semantic Retrieval (pgvector)
+Notes and queries are embedded into vector space and compared using similarity search, enabling meaning-based retrieval instead of keyword matching.
 
 ### 2. Retrieval-Augmented Generation (RAG)
-Instead of directly querying an LLM, the system first retrieves relevant data and then provides that context to the model to generate grounded responses.
+The system retrieves relevant note chunks first, then generates answers grounded in that context.
 
-### 3. Separation of retrieval and generation
-The system separates:
-- retrieval (pgvector)
-- generation (LLM)
+### 3. Multi-chunk Context Synthesis
+Instead of using a single match, multiple relevant chunks are retrieved and combined to improve answer quality.
 
-This makes the pipeline more controllable and extensible.
-
-### 4. Full-stack AI system design
-SignalNote integrates:
-- frontend note ingestion
-- backend orchestration
-- vector storage
-- semantic retrieval
-- LLM-based answer generation
+### 4. Grounded AI UX
+The UI makes the system transparent:
+- shows retrieved sources
+- displays similarity scores
+- links answers to specific notes through interaction
 
 ---
 
-## Example queries
+## 🖥️ Demo Experience
 
-- What does pgvector do?  
-- How does semantic search work in this project?  
-- Explain embeddings in simple terms  
+When using the app:
+1. Add a few notes  
+2. Ask a question  
+3. See:
+   - a grounded answer  
+   - supporting source notes  
+   - similarity scores  
+   - interactive highlighting between answer and sources  
 
 ---
 
-## Project structure
 
-```text
-signalnote/
-  backend/
-    app/
-      main.py
-      database.py
-      embeddings.py
-      models.py
-  frontend/
-    src/
-      App.jsx
-      App.css
-  assets/
-    signalnote-hero.png
-    signalnote-add-note.png
-    signalnote-grounded-answer.png
 
-```
-## Screenshots
-
-### Landing / product view
-![SignalNote landing view](assets/signalnote-hero.png)
-
-### Note ingestion flow
-![SignalNote add note flow](assets/signalnote-add-note.png)
-
-### Grounded answer with retrieved chunks
-![SignalNote grounded answer](assets/signalnote-grounded-answer.png)
