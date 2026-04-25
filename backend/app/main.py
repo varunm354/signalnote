@@ -10,6 +10,7 @@ from sqlalchemy import text
 from openai import OpenAI
 
 from fastapi.middleware.cors import CORSMiddleware
+import re
 
 client = OpenAI()
 
@@ -70,20 +71,35 @@ Answer using only the context above.""",
 
     return response.choices[0].message.content
 
-def chunk_text(text: str, chunk_size: int = 40, overlap: int = 5) -> list[str]:
-    words = text.split()
+
+def chunk_text(text: str, max_words: int = 80, overlap_sentences: int = 1) -> list[str]:
+    text = text.strip()
+
+    if not text:
+        return []
+
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
+
     chunks = []
-    
-    start = 0
-    while start < len(words):
-        end = start + chunk_size
-        chunk_words = words[start:end]
-        chunk = " ".join(chunk_words)
-        
-        if chunk:
-            chunks.append(chunk)
-        
-        start += chunk_size - overlap
+    current_chunk = []
+    current_word_count = 0
+
+    for sentence in sentences:
+        sentence_word_count = len(sentence.split())
+
+        if current_chunk and current_word_count + sentence_word_count > max_words:
+            chunks.append(" ".join(current_chunk).strip())
+
+            overlap = current_chunk[-overlap_sentences:] if overlap_sentences > 0 else []
+            current_chunk = overlap.copy()
+            current_word_count = sum(len(s.split()) for s in current_chunk)
+
+        current_chunk.append(sentence)
+        current_word_count += sentence_word_count
+
+    if current_chunk:
+        chunks.append(" ".join(current_chunk).strip())
 
     return chunks
 
@@ -176,8 +192,6 @@ def ask(query: str):
         with SessionLocal() as db:
             sql = text("""
                 SELECT
-                    document_id,
-                    chunk_index,
                     content,
                     1 - (embedding <=> CAST(:query_embedding AS vector)) AS similarity
                 FROM items
@@ -193,57 +207,61 @@ def ask(query: str):
 
             rows = result.fetchall()
 
-            if not rows:
-                return {
-                    "query": query,
-                    "answer": "I don't know based on the stored data.",
-                    "retrieved_chunks": []
-                }
-
-            # get best similarity score
-            best_similarity = max(float(row.similarity) for row in rows)
-
-            retrieved_chunks = [
-                {
-                    "document_id": row.document_id,
-                    "chunk_index": row.chunk_index,
-                    "content": row.content,
-                    "similarity": float(row.similarity)
-                }
-                for row in rows
-                if float(row.similarity) >= max(0.58, best_similarity - 0.05)
-            ]
-
-            unique_chunks = []
-            seen_contents = set()
-
-            for chunk in retrieved_chunks:
-                if chunk["content"] not in seen_contents:
-                    unique_chunks.append(chunk)
-                    seen_contents.add(chunk["content"])
-
-            retrieved_chunks = unique_chunks
-
-            if not retrieved_chunks:
-                return {
-                    "query": query,
-                    "answer": "I don't know based on the stored data.",
-                    "retrieved_chunks": []
-                }
-
-            answer = generate_answer(query, retrieved_chunks)
-
+        if not rows:
             return {
                 "query": query,
-                "answer": answer,
-                "retrieved_chunks": retrieved_chunks
+                "answer": "I could not find any relevant notes.",
+                "matches": []
             }
 
-    except Exception as e:
+        matches = []
+        context_parts = []
+
+        for i, row in enumerate(rows, start=1):
+            content = row.content.strip()
+            similarity = float(row.similarity)
+
+            matches.append({
+                "content": content,
+                "similarity": round(similarity, 4)
+            })
+
+            context_parts.append(f"Source {i}:\n{content}")
+
+        context_text = "\n\n".join(context_parts)
+
+        response = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You answer questions only using the provided context. "
+                        "If the answer is not supported by the context, say that clearly. "
+                        "Be concise, accurate, and easy to understand."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Context:\n{context_text}\n\n"
+                        f"Question: {query}\n\n"
+                        "Answer using only the context above."
+                    )
+                }
+            ]
+        )
+
+        answer = response.choices[0].message.content
+
         return {
-            "error": str(e),
-            "error_type": type(e).__name__
+            "query": query,
+            "answer": answer,
+            "matches": matches
         }
+
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/search_db")
